@@ -1,0 +1,69 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/(CHANGEME!)
+
+pkgname=linux-sony-pdx206
+pkgver=5.18.0
+pkgrel=0
+pkgdesc="Sony Xperia 5 II kernel SoMainline"
+arch="aarch64"
+_carch="arm64"
+_flavor="sony-pdx206"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	devicepkg-dev
+	flex
+	openssl-dev
+	perl
+"
+
+_config="config-$_flavor.$arch"
+_tag="sdm865-5.18.0"
+
+# Source
+_repository="linux"
+_commit="6c3f5bec9b40b9437410abb08eccd5cdd1598a3c"
+_config="config-$_flavor.$arch"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/SoMainline/$_repository/archive/$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/$_repository-$_commit"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-$_flavor"
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+
+	install -Dm644 "$builddir/arch/$_carch/boot/Image.gz" \
+		"$pkgdir/boot/vmlinuz"
+
+	make modules_install dtbs_install \
+		ARCH="$_carch" \
+		INSTALL_PATH="$pkgdir"/boot/ \
+		INSTALL_MOD_PATH="$pkgdir" \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir"/usr/share/dtb
+	rm -f "$pkgdir"/lib/modules/*/build "$pkgdir"/lib/modules/*/source
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+}
+
+sha512sums="
+0c9dd32711c3a3472b220404c546af1e3a969938679d268ec6513d357b185cb75069582ca510489fbe7756e46d007452fe9b85f7e5d823b2fa64fab1ab14a645  linux-sony-pdx206-6c3f5bec9b40b9437410abb08eccd5cdd1598a3c.tar.gz
+10019453e97b344dc991ffdc576442dbedf30395d2541eae8eda7f5717b6350ccf8ffe080d9d3a025f8319c1705acd838ba7710a12b7c7c74ca80b1189a114d8  config-sony-pdx206.aarch64
+"

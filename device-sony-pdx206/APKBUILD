@@ -1,0 +1,29 @@
+# Reference: <https://postmarketos.org/devicepkg>
+pkgname=device-sony-pdx206
+pkgdesc="Sony Xperia 5 II"
+pkgver=0.1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	linux-sony-pdx206
+	mesa-dri-gallium
+	mkbootimg
+	postmarketos-base
+"
+makedepends="devicepkg-dev"
+source="deviceinfo"
+
+build() {
+	devicepkg_build $startdir $pkgname
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+}
+
+sha512sums="
+3442f0832d1fb750b513eba867567c4a17f9927d927af48d980253395ac172b8736eefdf454ec840f321d914af064224c9eb209bda6f8a64d646a7331e819486  deviceinfo
+"
